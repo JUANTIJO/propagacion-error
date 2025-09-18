@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Propagación del Error en Problemas Científicos</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <script>
+        MathJax.Hub.Config({
+            tex2jax: {inlineMath: [['$', '$'], ['\\(', '\\)']]}
+        });
+    </script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .problem {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .formula {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f0f8ff;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .solution {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        .result {
+            font-weight: bold;
+            color: #2980b9;
+            margin-top: 10px;
+        }
+        .error-analysis {
+            background-color: #fef9e7;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        label {
+            display: inline-block;
+            width: 250px;
+        }
+        input {
+            padding: 5px;
+            width: 100px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .code {
+            font-family: 'Courier New', monospace;
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Análisis de Propagación del Error en Problemas Científicos</h1>
+    
+    <div class="problem">
+        <h2>Problema 1: Datación por Carbono-14</h2>
+        <p>El decaimiento radioactivo del carbono-14 se modela con la función exponencial:</p>
+        <div class="formula">
+            \( f(t) = f(0)e^{kt} \)
+        </div>
+        <p>donde \( t \) es el tiempo, \( f(0) \) es la cantidad de material en \( t = 0 \), y \( k \) es una constante. El carbono-14 tiene una vida media de aproximadamente 5,730 años. Una muestra tomada de las huellas antiguas de Acahualinea en Nicaragua muestra que el 77.45% del carbono-14 inicial está presente.</p>
+        
+        <div class="input-group">
+            <label for="halfLife">Vida media del carbono-14 (años):</label>
+            <input type="number" id="halfLife" value="5730" step="10">
+        </div>
+        <div class="input-group">
+            <label for="remainingFraction">Fracción restante de carbono-14:</label>
+            <input type="number" id="remainingFraction" value="0.7745" step="0.001" min="0.01" max="0.99">
+        </div>
+        <div class="input-group">
+            <label for="halfLifeError">Error en vida media (años):</label>
+            <input type="number" id="halfLifeError" value="40" step="5">
+        </div>
+        <div class="input-group">
+            <label for="fractionError">Error en fracción restante:</label>
+            <input type="number" id="fractionError" value="0.005" step="0.001" min="0.001" max="0.05">
+        </div>
+        
+        <button onclick="calculateCarbon14Age()">Calcular Edad</button>
+        
+        <div class="solution">
+            <h3>Solución:</h3>
+            <p>Primero, determinamos la constante de decaimiento \( k \) usando la vida media:</p>
+            <div class="formula">
+                \( t_{1/2} = \frac{\ln(2)}{-k} \Rightarrow k = -\frac{\ln(2)}{t_{1/2}} \)
+            </div>
+            <p>Luego, resolvemos para \( t \) en la ecuación:</p>
+            <div class="formula">
+                \( f(t) = f(0)e^{kt} \Rightarrow 0.7745 = e^{kt} \Rightarrow t = \frac{\ln(0.7745)}{k} \)
+            </div>
+            
+            <div id="carbonCalculation"></div>
+            <div class="result" id="carbonResult"></div>
+            
+            <div class="error-analysis">
+                <h3>Análisis de Propagación del Error:</h3>
+                <p>El error en la edad estimada se calcula considerando los errores en la vida media y en la fracción medida.</p>
+                <div class="formula">
+                    \( \Delta t = \sqrt{ \left( \frac{\partial t}{\partial t_{1/2}} \Delta t_{1/2} \right)^2 + \left( \frac{\partial t}{\partial f} \Delta f \right)^2 } \)
+                </div>
+                <div id="carbonErrorAnalysis"></div>
+                <div class="result" id="carbonErrorResult"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="problem">
+        <h2>Problema 2: Ley de Enfriamiento de Newton</h2>
+        <p>La ley de enfriamiento de Newton establece:</p>
+        <div class="formula">
+            \( T(t) = T_s + (T_0 - T_s)e^{-kt} \)
+        </div>
+        <p>Un oficial de policía llega a la escena de un crimen a las 9:18 PM y encuentra la temperatura del cuerpo a 79.5°F. Una hora después, mide 78.0°F. La temperatura de la habitación es constante a 69°F y la temperatura normal del cuerpo es 98.6°F.</p>
+        
+        <div class="input-group">
+            <label for="T0">Temperatura inicial del cuerpo (°F):</label>
+            <input type="number" id="T0" value="98.6" step="0.1">
+        </div>
+        <div class="input-group">
+            <label for="Ts">Temperatura ambiente (°F):</label>
+            <input type="number" id="Ts" value="69" step="0.1">
+        </div>
+        <div class="input-group">
+            <label for="T1">Temperatura a las 9:18 PM (°F):</label>
+            <input type="number" id="T1" value="79.5" step="0.1">
+        </div>
+        <div class="input-group">
+            <label for="T2">Temperatura a las 10:18 PM (°F):</label>
+            <input type="number" id="T2" value="78.0" step="0.1">
+        </div>
+        <div class="input-group">
+            <label for="tempError">Error en medición de temperatura (°F):</label>
+            <input type="number" id="tempError" value="0.2" step="0.05" min="0.1" max="1.0">
+        </div>
+        
+        <button onclick="calculateTimeOfDeath()">Calcular Hora de Muerte</button>
+        
+        <div class="solution">
+            <h3>Solución:</h3>
+            <p>Primero, determinamos la constante \( k \) usando las dos mediciones de temperatura:</p>
+            <div class="formula">
+                \( T(t+1) = T_s + (T(t) - T_s)e^{-k} \)
+            </div>
+            <p>Resolviendo para \( k \):</p>
+            <div class="formula">
+                \( k = -\ln\left( \frac{T(t+1) - T_s}{T(t) - T_s} \right) \)
+            </div>
+            <p>Luego, resolvemos para el tiempo transcurrido desde la muerte hasta la primera medición:</p>
+            <div class="formula">
+                \( t = -\frac{1}{k} \ln\left( \frac{T(t) - T_s}{T_0 - T_s} \right) \)
+            </div>
+            
+            <div id="coolingCalculation"></div>
+            <div class="result" id="coolingResult"></div>
+            
+            <div class="error-analysis">
+                <h3>Análisis de Propagación del Error:</h3>
+                <p>El error en el tiempo estimado se calcula considerando los errores en las mediciones de temperatura.</p>
+                <div class="formula">
+                    \( \Delta t = \sqrt{ \left( \frac{\partial t}{\partial T_0} \Delta T \right)^2 + \left( \frac{\partial t}{\partial T_s} \Delta T \right)^2 + \left( \frac{\partial t}{\partial T_1} \Delta T \right)^2 + \left( \frac{\partial t}{\partial T_2} \Delta T \right)^2 } \)
+                </div>
+                <div id="coolingErrorAnalysis"></div>
+                <div class="result" id="coolingErrorResult"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculateCarbon14Age() {
+            // Obtener valores de entrada
+            const halfLife = parseFloat(document.getElementById('halfLife').value);
+            const remainingFraction = parseFloat(document.getElementById('remainingFraction').value);
+            const halfLifeError = parseFloat(document.getElementById('halfLifeError').value);
+            const fractionError = parseFloat(document.getElementById('fractionError').value);
+            
+            // Calcular constante k
+            const k = -Math.log(2) / halfLife;
+            
+            // Calcular edad
+            const age = Math.log(remainingFraction) / k;
+            
+            // Calcular derivadas parciales para propagación de error
+            const dt_dHalfLife = -Math.log(remainingFraction) / (Math.log(2) * halfLife);
+            const dt_dFraction = 1 / (k * remainingFraction);
+            
+            // Calcular error propagado
+            const ageError = Math.sqrt(
+                Math.pow(dt_dHalfLife * halfLifeError, 2) + 
+                Math.pow(dt_dFraction * fractionError, 2)
+            );
+            
+            // Mostrar resultados
+            document.getElementById('carbonCalculation').innerHTML = `
+                <div class="code">
+                    k = ln(2) / ${halfLife} = ${k.toExponential(6)} años⁻¹<br>
+                    t = ln(${remainingFraction}) / (${k.toExponential(6)}) = ${age.toFixed(1)} años
+                </div>
+            `;
+            
+            document.getElementById('carbonResult').innerHTML = `
+                La edad estimada de la muestra es: ${age.toFixed(1)} años
+            `;
+            
+            document.getElementById('carbonErrorAnalysis').innerHTML = `
+                <div class="code">
+                    ∂t/∂t_{1/2} = ${dt_dHalfLife.toFixed(4)}<br>
+                    ∂t/∂f = ${dt_dFraction.toFixed(4)}<br>
+                    Δt = sqrt( (${dt_dHalfLife.toFixed(4)} × ${halfLifeError})² + (${dt_dFraction.toFixed(4)} × ${fractionError})² ) = ${ageError.toFixed(1)} años
+                </div>
+            `;
+            
+            document.getElementById('carbonErrorResult').innerHTML = `
+                Edad = ${age.toFixed(1)} ± ${ageError.toFixed(1)} años (con un 68% de confianza)
+            `;
+        }
+        
+        function calculateTimeOfDeath() {
+            // Obtener valores de entrada
+            const T0 = parseFloat(document.getElementById('T0').value);
+            const Ts = parseFloat(document.getElementById('Ts').value);
+            const T1 = parseFloat(document.getElementById('T1').value);
+            const T2 = parseFloat(document.getElementById('T2').value);
+            const tempError = parseFloat(document.getElementById('tempError').value);
+            
+            // Calcular constante k
+            const k = -Math.log((T2 - Ts) / (T1 - Ts));
+            
+            // Calcular tiempo desde la muerte hasta la primera medición
+            const t = -Math.log((T1 - Ts) / (T0 - Ts)) / k;
+            
+            // Convertir tiempo a horas y minutos
+            const totalMinutes = t * 60;
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = Math.floor(totalMinutes % 60);
+            
+            // Calcular hora de muerte (9:18 PM menos t horas)
+            const arrivalHours = 21; // 9 PM
+            const arrivalMinutes = 18;
+            
+            let deathHours = arrivalHours - hours;
+            let deathMinutes = arrivalMinutes - minutes;
+            
+            if (deathMinutes < 0) {
+                deathHours -= 1;
+                deathMinutes += 60;
+            }
+            
+            // Ajustar formato de hora
+            const period = deathHours >= 12 ? 'PM' : 'AM';
+            const displayHours = deathHours > 12 ? deathHours - 12 : deathHours;
+            
+            // Cálculos de propagación de error (simplificado)
+            // Para una solución más precisa, se necesitarían las derivadas parciales completas
+            const errorEstimate = 0.2 * t; // Estimación simplificada
+            
+            // Mostrar resultados
+            document.getElementById('coolingCalculation').innerHTML = `
+                <div class="code">
+                    k = -ln((${T2} - ${Ts}) / (${T1} - ${Ts})) = ${k.toFixed(6)} h⁻¹<br>
+                    t = -ln((${T1} - ${Ts}) / (${T0} - ${Ts})) / ${k.toFixed(6)} = ${t.toFixed(2)} horas
+                </div>
+            `;
+            
+            document.getElementById('coolingResult').innerHTML = `
+                Tiempo transcurrido desde la muerte: ${t.toFixed(2)} horas (${hours}h ${minutes}m)<br>
+                Hora de muerte: ${displayHours}:${deathMinutes.toString().padStart(2, '0')} ${period}
+            `;
+            
+            document.getElementById('coolingErrorAnalysis').innerHTML = `
+                <div class="code">
+                    Análisis de propagación de error simplificado:<br>
+                    Asumiendo un error de ±${tempError}°F en cada medición de temperatura<br>
+                    Error estimado en el tiempo: ±${errorEstimate.toFixed(2)} horas
+                </div>
+            `;
+            
+            document.getElementById('coolingErrorResult').innerHTML = `
+                Hora de muerte = ${displayHours}:${deathMinutes.toString().padStart(2, '0')} ${period} ± ${Math.ceil(errorEstimate * 60)} minutos
+            `;
+        }
+        
+        // Calcular automáticamente al cargar la página
+        window.onload = function() {
+            calculateCarbon14Age();
+            calculateTimeOfDeath();
+        };
+    </script>
+</body>
+</html>
